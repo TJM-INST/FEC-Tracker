@@ -3,6 +3,17 @@ import { pgTable, serial, text, integer, timestamp, pgEnum } from 'drizzle-orm/p
 export const priorityEnum = pgEnum('priority', ['low', 'medium', 'high', 'critical']);
 export const categoryEnum = pgEnum('category', ['bug_fix', 'enhancement', 'new_feature']);
 export const statusEnum = pgEnum('status', ['submitted', 'in_progress', 'in_review', 'completed']);
+export const locationEnum = pgEnum('location', [
+  'trade_entry_window',
+  'customer_window',
+  'account_window',
+  'order_blotter',
+  'position_manager',
+  'risk_dashboard',
+  'reports',
+  'admin',
+  'other',
+]);
 
 export const requests = pgTable('requests', {
   id: serial('id').primaryKey(),
@@ -11,6 +22,7 @@ export const requests = pgTable('requests', {
   priority: priorityEnum('priority').notNull().default('medium'),
   category: categoryEnum('category').notNull().default('enhancement'),
   status: statusEnum('status').notNull().default('submitted'),
+  location: locationEnum('location').notNull().default('other'),
   sortOrder: integer('sort_order').notNull().default(0),
   createdAt: timestamp('created_at').notNull().defaultNow(),
   completedAt: timestamp('completed_at'),

@@ -16,7 +16,7 @@ import {
 } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
 import type { Request } from '@/lib/schema';
-import { PriorityBadge, StatusBadge, categoryLabels, statusLabels } from './Badges';
+import { PriorityBadge, StatusBadge, categoryLabels, locationLabels, statusLabels } from './Badges';
 import RequestForm from './RequestForm';
 
 const STATUS_ORDER = ['submitted', 'in_progress', 'in_review', 'completed'] as const;
@@ -74,7 +74,7 @@ function SortableCard({
         <p className="text-xs text-gray-500 mt-1 line-clamp-2">{req.description}</p>
         <div className="flex items-center justify-between mt-3">
           <span className="text-xs text-gray-400">
-            {categoryLabels[req.category]} · #{req.id} · {new Date(req.createdAt).toLocaleDateString()}
+            {locationLabels[req.location]} · {categoryLabels[req.category]} · #{req.id} · {new Date(req.createdAt).toLocaleDateString()}
           </span>
           <div className="flex gap-2">
             {next && (

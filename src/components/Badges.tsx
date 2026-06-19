@@ -25,6 +25,18 @@ export const categoryLabels: Record<string, string> = {
   new_feature: 'New Feature',
 };
 
+export const locationLabels: Record<string, string> = {
+  trade_entry_window: 'Trade Entry Window',
+  customer_window: 'Customer Window',
+  account_window: 'Account Window',
+  order_blotter: 'Order Blotter',
+  position_manager: 'Position Manager',
+  risk_dashboard: 'Risk Dashboard',
+  reports: 'Reports',
+  admin: 'Admin',
+  other: 'Other',
+};
+
 export function PriorityBadge({ priority }: { priority: string }) {
   return (
     <span className={`text-xs font-semibold px-2 py-0.5 rounded-full ${priorityColors[priority] ?? 'bg-gray-100 text-gray-600'}`}>

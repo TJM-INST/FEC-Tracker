@@ -1,7 +1,7 @@
 import { db } from '@/lib/db';
 import { requests } from '@/lib/schema';
 import { eq, desc } from 'drizzle-orm';
-import { PriorityBadge, categoryLabels } from '@/components/Badges';
+import { PriorityBadge, categoryLabels, locationLabels } from '@/components/Badges';
 
 export const dynamic = 'force-dynamic';
 
@@ -46,6 +46,7 @@ export default async function CompletedPage() {
               </div>
               <p className="text-xs text-gray-500 mt-1 line-clamp-2">{req.description}</p>
               <div className="flex items-center gap-4 mt-3 text-xs text-gray-400">
+                <span>{locationLabels[req.location]}</span>
                 <span>{categoryLabels[req.category]}</span>
                 <span>#{req.id}</span>
                 <span>Submitted {new Date(req.createdAt).toLocaleDateString()}</span>

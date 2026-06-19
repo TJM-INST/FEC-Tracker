@@ -10,10 +10,23 @@ type Props = {
 
 const priorities = ['low', 'medium', 'high', 'critical'] as const;
 const categories = ['bug_fix', 'enhancement', 'new_feature'] as const;
+const locations = [
+  'trade_entry_window', 'customer_window', 'account_window',
+  'order_blotter', 'position_manager', 'risk_dashboard', 'reports', 'admin', 'other',
+] as const;
 const categoryLabels: Record<string, string> = {
-  bug_fix: 'Bug Fix',
-  enhancement: 'Enhancement',
-  new_feature: 'New Feature',
+  bug_fix: 'Bug Fix', enhancement: 'Enhancement', new_feature: 'New Feature',
+};
+const locationLabels: Record<string, string> = {
+  trade_entry_window: 'Trade Entry Window',
+  customer_window: 'Customer Window',
+  account_window: 'Account Window',
+  order_blotter: 'Order Blotter',
+  position_manager: 'Position Manager',
+  risk_dashboard: 'Risk Dashboard',
+  reports: 'Reports',
+  admin: 'Admin',
+  other: 'Other',
 };
 
 export default function RequestForm({ initial = {}, onSave, onCancel }: Props) {
@@ -21,12 +34,13 @@ export default function RequestForm({ initial = {}, onSave, onCancel }: Props) {
   const [description, setDescription] = useState(initial.description ?? '');
   const [priority, setPriority] = useState<typeof priorities[number]>(initial.priority ?? 'medium');
   const [category, setCategory] = useState<typeof categories[number]>(initial.category ?? 'enhancement');
+  const [location, setLocation] = useState<typeof locations[number]>(initial.location ?? 'other');
   const [saving, setSaving] = useState(false);
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     setSaving(true);
-    await onSave({ title, description, priority, category });
+    await onSave({ title, description, priority, category, location });
     setSaving(false);
   }
 
@@ -53,7 +67,7 @@ export default function RequestForm({ initial = {}, onSave, onCancel }: Props) {
           placeholder="Detailed description of the change requested"
         />
       </div>
-      <div className="grid grid-cols-2 gap-4">
+      <div className="grid grid-cols-3 gap-4">
         <div>
           <label className="block text-sm font-medium text-gray-700 mb-1">Priority</label>
           <select
@@ -75,6 +89,18 @@ export default function RequestForm({ initial = {}, onSave, onCancel }: Props) {
           >
             {categories.map((c) => (
               <option key={c} value={c}>{categoryLabels[c]}</option>
+            ))}
+          </select>
+        </div>
+        <div>
+          <label className="block text-sm font-medium text-gray-700 mb-1">Location</label>
+          <select
+            value={location}
+            onChange={(e) => setLocation(e.target.value as typeof locations[number])}
+            className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+          >
+            {locations.map((l) => (
+              <option key={l} value={l}>{locationLabels[l]}</option>
             ))}
           </select>
         </div>
