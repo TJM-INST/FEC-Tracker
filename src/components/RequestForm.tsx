@@ -21,7 +21,7 @@ const locationLabels: Record<string, string> = {
   trade_entry_window: 'Trade Entry Window',
   customer_window: 'Customer Window',
   account_window: 'Account Window',
-  order_blotter: 'Order Blotter',
+  order_blotter: 'Confirm Window',
   position_manager: 'Position Manager',
   risk_dashboard: 'Risk Dashboard',
   reports: 'Reports',
