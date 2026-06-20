@@ -16,25 +16,35 @@ import {
 } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
 import type { Request } from '@/lib/schema';
-import { PriorityBadge, StatusBadge, categoryLabels, locationLabels, statusLabels } from './Badges';
+import { categoryLabels, locationLabels, statusLabels } from './Badges';
 import RequestForm from './RequestForm';
 
-const STATUS_ORDER = ['submitted', 'in_progress', 'in_review', 'completed'] as const;
-type Status = typeof STATUS_ORDER[number];
+type Status = 'submitted' | 'in_progress' | 'in_review' | 'completed';
 
-function nextStatus(s: Status): Status | null {
-  const idx = STATUS_ORDER.indexOf(s);
-  return idx < STATUS_ORDER.length - 1 ? STATUS_ORDER[idx + 1] : null;
-}
+const statusSelectColors: Record<string, string> = {
+  submitted: 'bg-gray-100 text-gray-600',
+  in_progress: 'bg-yellow-100 text-yellow-700',
+  in_review: 'bg-purple-100 text-purple-700',
+  completed: 'bg-green-100 text-green-700',
+};
+
+const prioritySelectColors: Record<string, string> = {
+  low: 'bg-gray-100 text-gray-600',
+  medium: 'bg-blue-100 text-blue-700',
+  high: 'bg-orange-100 text-orange-700',
+  critical: 'bg-red-100 text-red-700',
+};
 
 function SortableCard({
   req,
-  onAdvance,
+  onChangeStatus,
+  onChangePriority,
   onEdit,
   onDelete,
 }: {
   req: Request;
-  onAdvance: (id: number, status: Status) => void;
+  onChangeStatus: (id: number, status: Status) => void;
+  onChangePriority: (id: number, priority: string) => void;
   onEdit: (req: Request) => void;
   onDelete: (id: number) => void;
 }) {
@@ -46,8 +56,6 @@ function SortableCard({
     transition,
     opacity: isDragging ? 0.5 : 1,
   };
-
-  const next = nextStatus(req.status as Status);
 
   return (
     <div
@@ -67,8 +75,26 @@ function SortableCard({
         <div className="flex items-start justify-between gap-2">
           <h3 className="font-semibold text-gray-900 text-sm leading-snug">{req.title}</h3>
           <div className="flex gap-1.5 shrink-0">
-            <PriorityBadge priority={req.priority} />
-            <StatusBadge status={req.status} />
+            <select
+              value={req.priority}
+              onChange={(e) => onChangePriority(req.id, e.target.value)}
+              className={`text-xs font-semibold px-2 py-0.5 rounded-full border-0 cursor-pointer focus:outline-none focus:ring-2 focus:ring-blue-400 ${prioritySelectColors[req.priority]}`}
+            >
+              <option value="low">Low</option>
+              <option value="medium">Medium</option>
+              <option value="high">High</option>
+              <option value="critical">Critical</option>
+            </select>
+            <select
+              value={req.status}
+              onChange={(e) => onChangeStatus(req.id, e.target.value as Status)}
+              className={`text-xs font-semibold px-2 py-0.5 rounded-full border-0 cursor-pointer focus:outline-none focus:ring-2 focus:ring-blue-400 ${statusSelectColors[req.status]}`}
+            >
+              <option value="submitted">Submitted</option>
+              <option value="in_progress">In Progress</option>
+              <option value="in_review">In Review</option>
+              <option value="completed">Completed</option>
+            </select>
           </div>
         </div>
         <p className="text-xs text-gray-500 mt-1 line-clamp-2">{req.description}</p>
@@ -77,14 +103,6 @@ function SortableCard({
             {locationLabels[req.location]} · {categoryLabels[req.category]} · #{req.id} · {new Date(req.createdAt).toLocaleDateString()}
           </span>
           <div className="flex gap-2">
-            {next && (
-              <button
-                onClick={() => onAdvance(req.id, next)}
-                className="text-xs px-2 py-1 rounded-lg bg-blue-50 text-blue-700 hover:bg-blue-100 transition-colors font-medium"
-              >
-                → {statusLabels[next]}
-              </button>
-            )}
             <button
               onClick={() => onEdit(req)}
               className="text-xs px-2 py-1 rounded-lg bg-gray-50 text-gray-600 hover:bg-gray-100 transition-colors"
@@ -105,7 +123,7 @@ function SortableCard({
 }
 
 export default function QueueView({ initial }: { initial: Request[] }) {
-  const [items, setItems] = useState<Request[]>(initial.filter((r) => r.status !== 'completed'));
+  const [items, setItems] = useState<Request[]>(initial);
   const [showForm, setShowForm] = useState(false);
   const [editing, setEditing] = useState<Request | null>(null);
 
@@ -151,18 +169,24 @@ export default function QueueView({ initial }: { initial: Request[] }) {
     setEditing(null);
   }
 
-  async function handleAdvance(id: number, status: Status) {
+  async function handleChangeStatus(id: number, status: Status) {
     const res = await fetch(`/api/requests/${id}`, {
       method: 'PATCH',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ status }),
     });
     const updated: Request = await res.json();
-    if (updated.status === 'completed') {
-      setItems((prev) => prev.filter((r) => r.id !== id));
-    } else {
-      setItems((prev) => prev.map((r) => (r.id === updated.id ? updated : r)));
-    }
+    setItems((prev) => prev.map((r) => (r.id === updated.id ? updated : r)));
+  }
+
+  async function handleChangePriority(id: number, priority: string) {
+    const res = await fetch(`/api/requests/${id}`, {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ priority }),
+    });
+    const updated: Request = await res.json();
+    setItems((prev) => prev.map((r) => (r.id === updated.id ? updated : r)));
   }
 
   async function handleDelete(id: number) {
@@ -175,7 +199,7 @@ export default function QueueView({ initial }: { initial: Request[] }) {
     <div>
       <div className="flex items-center justify-between mb-6">
         <h1 className="text-xl font-bold text-gray-900">
-          Active Queue <span className="text-gray-400 font-normal text-base">({items.length})</span>
+          Request Queue <span className="text-gray-400 font-normal text-base">({items.length})</span>
         </h1>
         <button
           onClick={() => setShowForm(true)}
@@ -200,7 +224,7 @@ export default function QueueView({ initial }: { initial: Request[] }) {
 
       {items.length === 0 && !showForm && (
         <div className="text-center py-16 text-gray-400">
-          <p className="text-lg">No active requests</p>
+          <p className="text-lg">No requests yet</p>
           <p className="text-sm mt-1">Click &quot;New Request&quot; to add one</p>
         </div>
       )}
@@ -212,7 +236,8 @@ export default function QueueView({ initial }: { initial: Request[] }) {
               <SortableCard
                 key={req.id}
                 req={req}
-                onAdvance={handleAdvance}
+                onChangeStatus={handleChangeStatus}
+                onChangePriority={handleChangePriority}
                 onEdit={setEditing}
                 onDelete={handleDelete}
               />
