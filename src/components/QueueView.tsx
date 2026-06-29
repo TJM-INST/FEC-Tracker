@@ -37,12 +37,14 @@ const prioritySelectColors: Record<string, string> = {
 
 function SortableCard({
   req,
+  position,
   onChangeStatus,
   onChangePriority,
   onEdit,
   onDelete,
 }: {
   req: Request;
+  position: number;
   onChangeStatus: (id: number, status: Status) => void;
   onChangePriority: (id: number, priority: string) => void;
   onEdit: (req: Request) => void;
@@ -63,14 +65,17 @@ function SortableCard({
       style={style}
       className="bg-white border border-gray-200 rounded-xl p-4 shadow-sm flex gap-3"
     >
-      <button
-        {...attributes}
-        {...listeners}
-        className="text-gray-300 hover:text-gray-500 cursor-grab active:cursor-grabbing mt-1 shrink-0"
-        aria-label="Drag to reorder"
-      >
-        ⠿
-      </button>
+      <div className="flex flex-col items-center gap-1 shrink-0">
+        <span className="text-xs font-bold text-gray-400 w-5 text-center">{position}</span>
+        <button
+          {...attributes}
+          {...listeners}
+          className="text-gray-300 hover:text-gray-500 cursor-grab active:cursor-grabbing"
+          aria-label="Drag to reorder"
+        >
+          ⠿
+        </button>
+      </div>
       <div className="flex-1 min-w-0">
         <div className="flex items-start justify-between gap-2">
           <h3 className="font-semibold text-gray-900 text-sm leading-snug">{req.title}</h3>
@@ -123,7 +128,7 @@ function SortableCard({
 }
 
 export default function QueueView({ initial }: { initial: Request[] }) {
-  const [items, setItems] = useState<Request[]>(initial);
+  const [items, setItems] = useState<Request[]>(initial.filter((r) => r.status !== 'completed'));
   const [showForm, setShowForm] = useState(false);
   const [editing, setEditing] = useState<Request | null>(null);
 
@@ -232,10 +237,11 @@ export default function QueueView({ initial }: { initial: Request[] }) {
       <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleDragEnd}>
         <SortableContext items={items.map((r) => r.id)} strategy={verticalListSortingStrategy}>
           <div className="space-y-3">
-            {items.map((req) => (
+            {items.map((req, index) => (
               <SortableCard
                 key={req.id}
                 req={req}
+                position={index + 1}
                 onChangeStatus={handleChangeStatus}
                 onChangePriority={handleChangePriority}
                 onEdit={setEditing}
