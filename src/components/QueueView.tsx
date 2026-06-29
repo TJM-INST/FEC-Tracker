@@ -66,7 +66,7 @@ function SortableCard({
       className="bg-white border border-gray-200 rounded-xl p-4 shadow-sm flex gap-3"
     >
       <div className="flex flex-col items-center gap-1 shrink-0">
-        <span className="text-xs font-bold text-gray-400 w-5 text-center">{position}</span>
+        <span className="flex items-center justify-center w-6 h-6 rounded-full bg-blue-600 text-white text-xs font-bold">{position}</span>
         <button
           {...attributes}
           {...listeners}
